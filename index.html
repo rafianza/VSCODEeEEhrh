@@ -3,32 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rey's Expense Tracker</title>
+    <title>Rey's Expense Tracker Pro</title>
     <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
             --bg-color: #f8fafc;
             --card-bg: #ffffff;
+            --input-bg: #ffffff;
             --primary: #6366f1;
             --primary-hover: #4f46e5;
             --success: #10b981;
             --success-hover: #059669;
             --info: #0ea5e9;
             --info-hover: #0284c7;
+            --warning: #f59e0b;
             --danger: #ef4444;
             --danger-hover: #dc2626;
             --text-main: #0f172a;
             --text-muted: #64748b;
             --border: #e2e8f0;
             --radius: 12px;
+            --table-hover: #f8fafc;
+            --table-header: #f8fafc;
+        }
+
+        body.dark-mode {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --input-bg: #334155;
+            --primary: #818cf8;
+            --primary-hover: #6366f1;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --table-hover: #334155;
+            --table-header: #0f172a;
         }
 
         * {
             box-sizing: border-box;
-            transition: all 0.2s ease-in-out;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
         }
 
         body {
@@ -43,31 +62,40 @@
 
         .container {
             width: 100%;
-            max-width: 850px;
+            max-width: 900px;
             background: var(--card-bg);
             padding: 30px;
             border-radius: 20px;
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
         }
 
         .header {
-            text-align: center;
-            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            gap: 15px;
         }
 
         .header h1 {
-            font-size: 2.2rem;
+            font-size: 2rem;
             font-weight: 700;
             background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin: 0 0 8px 0;
+            margin: 0;
         }
 
-        .header p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            margin: 0;
+        .theme-btn {
+            background: var(--border);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
         }
 
         h2 {
@@ -75,19 +103,16 @@
             font-weight: 600;
             color: var(--text-main);
             margin: 25px 0 15px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
-        /* Form Styling */
         form {
             display: grid;
             grid-template-columns: 1fr;
             gap: 14px;
-            background: #f1f5f9;
+            background: var(--bg-color);
             padding: 20px;
             border-radius: var(--radius);
+            border: 1px solid var(--border);
         }
 
         input, select {
@@ -97,7 +122,7 @@
             border-radius: 10px;
             font-family: inherit;
             font-size: 0.95rem;
-            background-color: #ffffff;
+            background-color: var(--input-bg);
             color: var(--text-main);
             outline: none;
         }
@@ -107,40 +132,36 @@
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
         }
 
-        /* Buttons */
         .btn-group {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 12px;
+            gap: 10px;
             margin-bottom: 20px;
         }
 
         button {
             width: 100%;
-            padding: 12px 20px;
+            padding: 12px 16px;
             border: none;
             border-radius: 10px;
             font-family: inherit;
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .add-btn { background-color: var(--primary); color: white; }
-        .add-btn:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
-
         .save-btn { background-color: var(--success); color: white; }
-        .save-btn:hover { background-color: var(--success-hover); transform: translateY(-1px); }
-
         .load-btn { background-color: var(--info); color: white; }
-        .load-btn:hover { background-color: var(--info-hover); transform: translateY(-1px); }
+        .export-btn { background-color: #8b5cf6; color: white; }
+        .clear-btn { background-color: var(--danger); color: white; }
 
         .delete-btn {
-            background-color: #fee2e2;
+            background-color: rgba(239, 68, 68, 0.15);
             color: var(--danger);
             padding: 6px 12px;
             font-size: 0.8rem;
@@ -148,35 +169,74 @@
         }
         .delete-btn:hover { background-color: var(--danger); color: white; }
 
+        /* Progress Bar */
+        .budget-container {
+            background: var(--bg-color);
+            padding: 20px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            margin-bottom: 25px;
+        }
+        .progress-bar-bg {
+            width: 100%;
+            height: 12px;
+            background: var(--border);
+            border-radius: 6px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--success);
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-top: 25px;
+        }
+        .chart-card {
+            background: var(--bg-color);
+            padding: 20px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+        }
+
         /* Summary Cards */
         .summary {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 15px;
-            margin-top: 30px;
+            margin-top: 25px;
         }
-
         .summary-card {
-            background: #ffffff;
+            background: var(--bg-color);
             border: 1px solid var(--border);
             padding: 16px;
             border-radius: var(--radius);
-            text-align: left;
         }
-
         .summary-card strong {
             display: block;
             font-size: 0.8rem;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
             color: var(--text-muted);
             margin-bottom: 6px;
         }
-
         .summary-card span {
             font-size: 1.25rem;
             font-weight: 700;
-            color: var(--text-main);
+        }
+
+        /* Controls / Filter Bar */
+        .filter-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
         }
 
         /* Table Styling */
@@ -186,45 +246,38 @@
             border: 1px solid var(--border);
             border-radius: var(--radius);
         }
-
         table {
             width: 100%;
             border-collapse: collapse;
             min-width: 550px;
-            background: white;
+            background: var(--card-bg);
         }
-
         th {
-            background-color: #f8fafc;
+            background-color: var(--table-header);
             color: var(--text-muted);
             font-weight: 600;
             font-size: 0.85rem;
             text-transform: uppercase;
-            letter-spacing: 0.05em;
             padding: 14px 16px;
             border-bottom: 1px solid var(--border);
             text-align: left;
         }
-
         td {
             padding: 14px 16px;
             border-bottom: 1px solid var(--border);
             font-size: 0.95rem;
         }
-
         tr:last-child td { border-bottom: none; }
-        tr:hover td { background-color: #f8fafc; }
+        tr:hover td { background-color: var(--table-hover); }
 
-        /* Category Badges */
+        /* Badges */
         .badge {
             display: inline-block;
             padding: 4px 10px;
             border-radius: 20px;
             font-size: 0.75rem;
             font-weight: 600;
-            text-transform: lowercase;
         }
-
         .badge-commute { background: #e0f2fe; color: #0369a1; }
         .badge-fnb { background: #ffedd5; color: #c2410c; }
         .badge-hobbies { background: #f3e8ff; color: #6b21a8; }
@@ -232,7 +285,6 @@
         .badge-groceries { background: #dcfce7; color: #15803d; }
         .badge-transport { background: #f1f5f9; color: #334155; }
 
-        /* Alert Toast */
         .alert-box {
             padding: 12px 20px;
             margin-bottom: 20px;
@@ -246,12 +298,12 @@
             border: 1px solid #a7f3d0;
         }
 
-        /* Responsive Breakpoints */
         @media (min-width: 640px) {
             form { grid-template-columns: 1fr 1fr; }
-            .btn-group { grid-template-columns: 1fr 1fr; }
+            .btn-group { grid-template-columns: repeat(3, 1fr); }
+            .filter-grid { grid-template-columns: 2fr 1fr; }
             .summary { grid-template-columns: repeat(4, 1fr); }
-            .container { padding: 40px; }
+            .charts-grid { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
@@ -259,15 +311,33 @@
 
     <div class="container">
         <div class="header">
-            <h1>Rey's Expense Tracker</h1>
-            <p>Track, manage, and optimize your personal spending</p>
+            <div>
+                <h1>Rey's Expense Tracker</h1>
+                <span style="color: var(--text-muted); font-size: 0.9rem;">Personal Finance Dashboard</span>
+            </div>
+            <button class="theme-btn" onclick="toggleTheme()">🌙 Dark / Light</button>
         </div>
 
         <div id="alertBox" class="alert-box"></div>
 
+        <!-- Budget Tracker -->
+        <div class="budget-container">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <strong>Monthly Budget (Rp.):</strong>
+                <input type="number" id="budgetInput" placeholder="Set Budget" style="max-width: 200px; padding: 6px 10px;" onchange="updateBudgetGoal()">
+            </div>
+            <div class="progress-bar-bg">
+                <div id="progressBar" class="progress-bar-fill"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); margin-top: 6px;">
+                <span id="budgetSpent">Spent: Rp. 0</span>
+                <span id="budgetStatus">0% Used</span>
+            </div>
+        </div>
+
         <h2>Add New Transaction</h2>
         <form id="expenseForm">
-            <input type="text" id="title" placeholder="Title (e.g., Kopi Janji Jiwa)" required>
+            <input type="text" id="title" placeholder="Title (e.g. Groceries)" required>
             <input type="number" id="amount" placeholder="Amount (Rp.)" required>
             
             <select id="category" required>
@@ -284,13 +354,39 @@
             <button type="submit" class="add-btn" style="grid-column: 1 / -1;">+ Add Expense</button>
         </form>
 
-        <h2>Storage Options</h2>
+        <h2>Data Management</h2>
         <div class="btn-group">
-            <button type="button" class="save-btn" onclick="manualSave()">💾 Save Expenses</button>
-            <button type="button" class="load-btn" onclick="manualLoad()">🔄 Load Saved Expenses</button>
+            <button class="save-btn" onclick="exportJSON()">💾 Export JSON</button>
+            <button class="load-btn" onclick="document.getElementById('importFileInput').click()">🔄 Import JSON</button>
+            <button class="export-btn" onclick="exportCSV()">📊 Export CSV</button>
+            <button class="clear-btn" onclick="clearAllData()" style="grid-column: 1 / -1;">🗑️ Clear All Data</button>
+            <input type="file" id="importFileInput" style="display: none;" accept=".json" onchange="importJSON(event)">
+        </div>
+
+        <h2>Analytics & Charts</h2>
+        <div class="charts-grid">
+            <div class="chart-card">
+                <canvas id="categoryChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <canvas id="monthlyChart"></canvas>
+            </div>
         </div>
 
         <h2>Recent Transactions</h2>
+        <div class="filter-grid">
+            <input type="text" id="searchInput" placeholder="🔍 Search transactions..." oninput="renderExpenses()">
+            <select id="filterCategory" onchange="renderExpenses()">
+                <option value="ALL">All Categories</option>
+                <option value="commute">commute</option>
+                <option value="fnb">fnb</option>
+                <option value="hobbies">hobbies</option>
+                <option value="hangout">hangout</option>
+                <option value="groceries">groceries</option>
+                <option value="transport">transport</option>
+            </select>
+        </div>
+
         <div class="table-responsive">
             <table>
                 <thead>
@@ -303,9 +399,7 @@
                         <th>Action</th>
                     </tr>
                 </thead>
-                <tbody id="expenseTableBody">
-                    <!-- Dynamic rendering -->
-                </tbody>
+                <tbody id="expenseTableBody"></tbody>
             </table>
         </div>
 
@@ -316,12 +410,10 @@
                     <tr>
                         <th>Month & Year</th>
                         <th>Total Spent</th>
-                        <th>Item Count</th>
+                        <th>Count</th>
                     </tr>
                 </thead>
-                <tbody id="monthlyTableBody">
-                    <!-- Monthly stats dynamic rendering -->
-                </tbody>
+                <tbody id="monthlyTableBody"></tbody>
             </table>
         </div>
 
@@ -347,97 +439,138 @@
 
     <script>
         let expenses = [];
+        let budgetLimit = 0;
+        let categoryChartInstance = null;
+        let monthlyChartInstance = null;
 
         const form = document.getElementById("expenseForm");
         const tableBody = document.getElementById("expenseTableBody");
         const alertBox = document.getElementById("alertBox");
 
-        function showAlert(message) {
-            alertBox.textContent = message;
+        function showAlert(msg) {
+            alertBox.textContent = msg;
             alertBox.style.display = "block";
-            setTimeout(() => {
-                alertBox.style.display = "none";
-            }, 2500);
+            setTimeout(() => alertBox.style.display = "none", 2500);
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle("dark-mode");
+            const isDark = document.body.classList.contains("dark-mode");
+            localStorage.setItem("theme", isDark ? "dark" : "light");
+            renderCharts();
         }
 
         function saveToStorage() {
             localStorage.setItem("expenses", JSON.stringify(expenses));
+            localStorage.setItem("budgetLimit", budgetLimit);
         }
 
         function loadFromStorage() {
             const stored = localStorage.getItem("expenses");
             expenses = stored ? JSON.parse(stored) : [];
+            budgetLimit = parseFloat(localStorage.getItem("budgetLimit")) || 0;
+            document.getElementById("budgetInput").value = budgetLimit || "";
+            if (localStorage.getItem("theme") === "dark") {
+                document.body.classList.add("dark-mode");
+            }
         }
 
-        function manualSave() {
+        function updateBudgetGoal() {
+            budgetLimit = parseFloat(document.getElementById("budgetInput").value) || 0;
             saveToStorage();
-            showAlert("Expenses saved successfully!");
-        }
-
-        function manualLoad() {
-            loadFromStorage();
             renderExpenses();
-            showAlert("Expenses reloaded from storage!");
         }
 
         function renderExpenses() {
             tableBody.innerHTML = "";
+            const searchQuery = document.getElementById("searchInput").value.toLowerCase();
+            const selectedCategory = document.getElementById("filterCategory").value;
 
-            if (expenses.length === 0) {
-                tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No expenses recorded yet.</td></tr>`;
-                updateSummary(0, 0, 0, 0);
-                renderMonthlySummary({});
-                return;
-            }
+            const filteredExpenses = expenses.filter(item => {
+                const matchesSearch = item.title.toLowerCase().includes(searchQuery);
+                const matchesCategory = selectedCategory === "ALL" || item.category === selectedCategory;
+                return matchesSearch && matchesCategory;
+            });
 
             let total = 0;
             let highest = 0;
             const monthlyData = {};
+            const categoryData = {};
 
-            expenses.forEach((expense, index) => {
+            expenses.forEach((expense) => {
                 total += expense.amount;
                 if (expense.amount > highest) highest = expense.amount;
 
-                // Group by Month and Year
+                categoryData[expense.category] = (categoryData[expense.category] || 0) + expense.amount;
+
                 if (expense.date) {
                     const dateObj = new Date(expense.date);
                     if (!isNaN(dateObj)) {
                         const monthKey = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' });
-                        if (!monthlyData[monthKey]) {
-                            monthlyData[monthKey] = { total: 0, count: 0 };
-                        }
+                        if (!monthlyData[monthKey]) monthlyData[monthKey] = { total: 0, count: 0 };
                         monthlyData[monthKey].total += expense.amount;
                         monthlyData[monthKey].count += 1;
                     }
                 }
-
-                const row = document.createElement("tr");
-                row.innerHTML = `
-                    <td style="color: var(--text-muted);">${index + 1}</td>
-                    <td><strong>${expense.title}</strong></td>
-                    <td style="font-weight: 600;">Rp. ${expense.amount.toLocaleString('id-ID')}</td>
-                    <td><span class="badge badge-${expense.category}">${expense.category}</span></td>
-                    <td style="color: var(--text-muted); font-size: 0.85rem;">${expense.date}</td>
-                    <td><button class="delete-btn" onclick="deleteExpense(${index})">Delete</button></td>
-                `;
-                tableBody.appendChild(row);
             });
 
-            const count = expenses.length;
-            const avg = total / count;
+            if (filteredExpenses.length === 0) {
+                tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No matching transactions found.</td></tr>`;
+            } else {
+                filteredExpenses.forEach((expense, index) => {
+                    const realIndex = expenses.indexOf(expense);
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td style="color: var(--text-muted);">${index + 1}</td>
+                        <td><strong>${expense.title}</strong></td>
+                        <td style="font-weight: 600;">Rp. ${expense.amount.toLocaleString('id-ID')}</td>
+                        <td><span class="badge badge-${expense.category}">${expense.category}</span></td>
+                        <td style="color: var(--text-muted); font-size: 0.85rem;">${expense.date}</td>
+                        <td><button class="delete-btn" onclick="deleteExpense(${realIndex})">Delete</button></td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
 
-            updateSummary(total, count, avg, highest);
+            updateSummary(total, expenses.length, total / (expenses.length || 1), highest);
             renderMonthlySummary(monthlyData);
+            updateBudgetProgress(total);
+            renderCharts(categoryData, monthlyData);
+        }
+
+        function updateBudgetProgress(totalSpent) {
+            const progressBar = document.getElementById("progressBar");
+            const budgetSpentLabel = document.getElementById("budgetSpent");
+            const budgetStatusLabel = document.getElementById("budgetStatus");
+
+            budgetSpentLabel.textContent = `Spent: Rp. ${totalSpent.toLocaleString('id-ID')}`;
+
+            if (budgetLimit <= 0) {
+                progressBar.style.width = "0%";
+                budgetStatusLabel.textContent = "No Budget Set";
+                return;
+            }
+
+            const percentage = Math.min((totalSpent / budgetLimit) * 100, 100);
+            progressBar.style.width = `${percentage}%`;
+            budgetStatusLabel.textContent = `${Math.round((totalSpent / budgetLimit) * 100)}% Used`;
+
+            if (totalSpent >= budgetLimit) {
+                progressBar.style.backgroundColor = "var(--danger)";
+            } else if (percentage >= 80) {
+                progressBar.style.backgroundColor = "var(--warning)";
+            } else {
+                progressBar.style.backgroundColor = "var(--success)";
+            }
         }
 
         function renderMonthlySummary(monthlyData) {
             const monthlyTableBody = document.getElementById("monthlyTableBody");
             monthlyTableBody.innerHTML = "";
-
             const months = Object.keys(monthlyData);
 
             if (months.length === 0) {
-                monthlyTableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 16px;">No dated expenses to summarize.</td></tr>`;
+                monthlyTableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 16px;">No dated expenses available.</td></tr>`;
                 return;
             }
 
@@ -447,7 +580,7 @@
                 row.innerHTML = `
                     <td><strong>${month}</strong></td>
                     <td style="font-weight: 600;">Rp. ${data.total.toLocaleString('id-ID')}</td>
-                    <td>${data.count} transaction(s)</td>
+                    <td>${data.count} item(s)</td>
                 `;
                 monthlyTableBody.appendChild(row);
             });
@@ -460,16 +593,64 @@
             document.getElementById("highestAmount").textContent = `Rp. ${highest.toLocaleString('id-ID')}`;
         }
 
-        form.addEventListener("submit", function(event) {
-            event.preventDefault();
+        function renderCharts(categoryData = {}, monthlyData = {}) {
+            const isDark = document.body.classList.contains("dark-mode");
+            const textColor = isDark ? "#f8fafc" : "#0f172a";
 
+            // Donut Chart: Categories
+            const catCtx = document.getElementById('categoryChart').getContext('2d');
+            if (categoryChartInstance) categoryChartInstance.destroy();
+            categoryChartInstance = new Chart(catCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(categoryData),
+                    datasets: [{
+                        data: Object.values(categoryData),
+                        backgroundColor: ['#0369a1', '#c2410c', '#6b21a8', '#be185d', '#15803d', '#334155']
+                    }]
+                },
+                options: {
+                    plugins: {
+                        title: { display: true, text: 'Expenses by Category', color: textColor },
+                        legend: { labels: { color: textColor } }
+                    }
+                }
+            });
+
+            // Bar Chart: Monthly
+            const monthCtx = document.getElementById('monthlyChart').getContext('2d');
+            if (monthlyChartInstance) monthlyChartInstance.destroy();
+            monthlyChartInstance = new Chart(monthCtx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(monthlyData),
+                    datasets: [{
+                        label: 'Total Spent (Rp.)',
+                        data: Object.values(monthlyData).map(m => m.total),
+                        backgroundColor: '#6366f1'
+                    }]
+                },
+                options: {
+                    plugins: {
+                        title: { display: true, text: 'Monthly Spending Trends', color: textColor },
+                        legend: { labels: { color: textColor } }
+                    },
+                    scales: {
+                        x: { ticks: { color: textColor } },
+                        y: { ticks: { color: textColor } }
+                    }
+                }
+            });
+        }
+
+        form.addEventListener("submit", function(e) {
+            e.preventDefault();
             const title = document.getElementById("title").value.trim();
             const amount = parseFloat(document.getElementById("amount").value);
             const category = document.getElementById("category").value;
             const date = document.getElementById("date").value;
 
             expenses.push({ title, amount, category, date });
-
             saveToStorage();
             form.reset();
             renderExpenses();
@@ -483,7 +664,56 @@
             showAlert("Expense deleted.");
         }
 
-        // Initialize application state
+        /* Export / Import Handlers */
+        function exportCSV() {
+            if (expenses.length === 0) return showAlert("No expenses to export.");
+            let csvContent = "data:text/csv;charset=utf-8,Title,Amount,Category,Date\n";
+            expenses.forEach(e => {
+                csvContent += `"${e.title}",${e.amount},"${e.category}","${e.date}"\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "expenses_report.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function exportJSON() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(expenses, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", "expenses_backup.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importJSON(event) {
+            const fileReader = new FileReader();
+            fileReader.onload = function(e) {
+                try {
+                    expenses = JSON.parse(e.target.result);
+                    saveToStorage();
+                    renderExpenses();
+                    showAlert("Backup restored successfully!");
+                } catch (err) {
+                    showAlert("Invalid JSON file format.");
+                }
+            };
+            fileReader.readAsText(event.target.files[0]);
+        }
+
+        function clearAllData() {
+            if (confirm("Are you sure you want to delete all expenses? This cannot be undone.")) {
+                expenses = [];
+                saveToStorage();
+                renderExpenses();
+                showAlert("All data has been cleared.");
+            }
+        }
+
         loadFromStorage();
         renderExpenses();
     </script>
