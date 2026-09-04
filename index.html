@@ -309,6 +309,22 @@
             </table>
         </div>
 
+        <h2>Monthly Breakdown</h2>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Month & Year</th>
+                        <th>Total Spent</th>
+                        <th>Item Count</th>
+                    </tr>
+                </thead>
+                <tbody id="monthlyTableBody">
+                    <!-- Monthly stats dynamic rendering -->
+                </tbody>
+            </table>
+        </div>
+
         <div class="summary">
             <div class="summary-card">
                 <strong>Total Spent</strong>
@@ -370,15 +386,30 @@
             if (expenses.length === 0) {
                 tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No expenses recorded yet.</td></tr>`;
                 updateSummary(0, 0, 0, 0);
+                renderMonthlySummary({});
                 return;
             }
 
             let total = 0;
             let highest = 0;
+            const monthlyData = {};
 
             expenses.forEach((expense, index) => {
                 total += expense.amount;
                 if (expense.amount > highest) highest = expense.amount;
+
+                // Group by Month and Year
+                if (expense.date) {
+                    const dateObj = new Date(expense.date);
+                    if (!isNaN(dateObj)) {
+                        const monthKey = dateObj.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+                        if (!monthlyData[monthKey]) {
+                            monthlyData[monthKey] = { total: 0, count: 0 };
+                        }
+                        monthlyData[monthKey].total += expense.amount;
+                        monthlyData[monthKey].count += 1;
+                    }
+                }
 
                 const row = document.createElement("tr");
                 row.innerHTML = `
@@ -396,6 +427,30 @@
             const avg = total / count;
 
             updateSummary(total, count, avg, highest);
+            renderMonthlySummary(monthlyData);
+        }
+
+        function renderMonthlySummary(monthlyData) {
+            const monthlyTableBody = document.getElementById("monthlyTableBody");
+            monthlyTableBody.innerHTML = "";
+
+            const months = Object.keys(monthlyData);
+
+            if (months.length === 0) {
+                monthlyTableBody.innerHTML = `<tr><td colspan="3" style="text-align: center; color: var(--text-muted); padding: 16px;">No dated expenses to summarize.</td></tr>`;
+                return;
+            }
+
+            months.forEach(month => {
+                const data = monthlyData[month];
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td><strong>${month}</strong></td>
+                    <td style="font-weight: 600;">Rp. ${data.total.toLocaleString('id-ID')}</td>
+                    <td>${data.count} transaction(s)</td>
+                `;
+                monthlyTableBody.appendChild(row);
+            });
         }
 
         function updateSummary(total, count, avg, highest) {
@@ -434,4 +489,3 @@
     </script>
 </body>
 </html>
-
